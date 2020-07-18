@@ -99,9 +99,3 @@ class DeconvDecoder(nn.Module):
         out = self.last(out)
 
         return out
-
-En = OrdinaryEncoder(3)
-De = DeconvDecoder(3)
-input_tensor = torch.randn(4,3,352,480)
-out1 = En(input_tensor)
-out2 = De(out1)

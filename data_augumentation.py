@@ -120,8 +120,8 @@ class Normalize_Tensor(object):
         img = transforms.functional.to_tensor(img)
 
         # 色情報の標準化
-        img = transforms.functional.normalize(
-            img, self.color_mean, self.color_std)
+        #img = transforms.functional.normalize(
+        #    img, self.color_mean, self.color_std)
 
 
         return img
