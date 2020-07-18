@@ -13,10 +13,10 @@ from EndoscopicDataset_utils import EndoscopicDataset, make_datapath_list, DataT
 class AutoEncoder:
     def __init__(self):
         self.encoder = OrdinaryEncoder(input_nc=3)
-        self.decoder = DeconvDecoder(input_nc=3)
+        self.decoder = DeconvDecoder(input_nc=1)
 
     def train(self, dataset_rootpath, num_epoch=100, lr=1e-5, mini_batch_size=8, color_mean=(0.485, 0.456, 0.406),
-              color_std=(0.229, 0.224, 0.225), save_iter_freq=100):
+              color_std=(0.229, 0.224, 0.225), save_iter_freq=100, Is_continue=False):
 
         # GPUが使えるかを確認
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -28,7 +28,10 @@ class AutoEncoder:
         encoder_optimizer = torch.optim.Adam(self.encoder.parameters(), lr=lr, betas=(beta1, beta2))
         decoder_optimizer = torch.optim.Adam(self.decoder.parameters(), lr=lr, betas=(beta1, beta2))
 
-        # ネットワークをGPUに
+        # 重みをロード，ネットワークをGPUに
+        if Is_continue:
+            self.encoder.load_state_dict(torch.load(r'D:\Deep_Learning\AutoEncoder\model\encoder_model.pth'))
+            self.decoder.load_state_dict(torch.load(r'D:\Deep_Learning\AutoEncoder\model\decoder_model.pth'))
         self.encoder = self.encoder.to(device)
         self.decoder = self.decoder.to(device)
         self.encoder.train()
@@ -47,7 +50,7 @@ class AutoEncoder:
         val_daraloader = torch.utils.data.DataLoader(val_dataset, batch_size=mini_batch_size, shuffle=True)
 
         # epochのループ
-        iteration = 1
+        iteration = 0
         for epoch in range(num_epoch):
 
             # 開始時刻を保存
@@ -105,6 +108,6 @@ class AutoEncoder:
             t_epoch_finish = time.time()
             print('------')
             print('epoch {}'.format(epoch))
-            print('loss : {}  || timer {:.4f} sec'.format(epoch_loss / mini_batch_size, t_epoch_start - time.time()))
+            print('loss : {}  || timer {:.4f} sec'.format(epoch_loss / mini_batch_size, time.time() - t_epoch_start))
 
             t_epoch_start = time.time()
