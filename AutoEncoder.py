@@ -12,6 +12,7 @@ from EndoscopicDataset_utils import EndoscopicDataset, make_datapath_list, DataT
 
 class AutoEncoder:
     def __init__(self):
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.encoder = OrdinaryEncoder(input_nc=3)
         self.decoder = DeconvDecoder(input_nc=1)
 
@@ -19,8 +20,7 @@ class AutoEncoder:
               color_std=(0.229, 0.224, 0.225), save_iter_freq=100, Is_continue=False):
 
         # GPUが使えるかを確認
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        print("使用デバイス : ", device)
+        print("使用デバイス : ", self.device)
 
         # 損失関数,最適化手法の定義
         criterion = nn.MSELoss()
@@ -32,8 +32,8 @@ class AutoEncoder:
         if Is_continue:
             self.encoder.load_state_dict(torch.load(r'D:\Deep_Learning\AutoEncoder\model\encoder_model.pth'))
             self.decoder.load_state_dict(torch.load(r'D:\Deep_Learning\AutoEncoder\model\decoder_model.pth'))
-        self.encoder = self.encoder.to(device)
-        self.decoder = self.decoder.to(device)
+        self.encoder = self.encoder.to(self.device)
+        self.decoder = self.decoder.to(self.device)
         self.encoder.train()
         self.decoder.train()
 
@@ -74,7 +74,7 @@ class AutoEncoder:
                     continue
 
                 # 画像の再構成
-                esophagus_img = esophagus_img.to(device)
+                esophagus_img = esophagus_img.to(self.device)
                 compressed_features = self.encoder(esophagus_img)
                 reconstructed_esophagus_img = self.decoder(compressed_features)
 
@@ -111,3 +111,12 @@ class AutoEncoder:
             print('loss : {}  || timer {:.4f} sec'.format(epoch_loss / mini_batch_size, time.time() - t_epoch_start))
 
             t_epoch_start = time.time()
+
+    def prepare_encoder(self, pth_path):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.encoder.load_state_dict(torch.load(r'D:\Deep_Learning\AutoEncoder\model\encoder_model.pth'))
+        self.encoder = self.encoder.to(self.device)
+
+    def encode(self, img):
+        img = img.to(self.device)
+        return self.encoder
